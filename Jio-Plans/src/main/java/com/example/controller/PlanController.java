@@ -9,7 +9,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -25,11 +24,15 @@ public class PlanController {
 	@Autowired
 	private PlanService customerService;
 	
+	@PostMapping("/addplan")
+	public ResponseEntity<ResponsePlan> addPlan(@RequestBody RequestPlan requestCustomer) {
+		ResponsePlan responseCustomer = customerService.addPlan(requestCustomer);
+		return new ResponseEntity<ResponsePlan>(responseCustomer, HttpStatus.OK);
+	}
 	
 	@GetMapping("/plan/{planId}")  
 	public ResponseEntity<ResponsePlan> getPlanById(@PathVariable("planId") long planId)
 	{
-
 		try {
 			ResponsePlan responseCustomer = customerService.getPlanById(planId);
 			return new ResponseEntity<ResponsePlan>(responseCustomer, HttpStatus.OK);
@@ -42,5 +45,11 @@ public class PlanController {
 	@GetMapping("/plans")  
 	public List<ResponsePlan> getPlans() {
 		return  customerService.getPlans();
+	}
+	
+	@GetMapping("/plans/{type}")  
+	public ResponseEntity<List<ResponsePlan>> getPlanByType(@PathVariable("type") String type)
+	{
+			return new ResponseEntity<>(customerService.getPlanByType(type),HttpStatus.OK);
 	}
 }

@@ -2,15 +2,10 @@ package com.example.controller;
 
 import java.util.List;
 
-import javax.print.attribute.standard.Media;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.client.ServiceInstance;
-import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -23,8 +18,9 @@ import org.springframework.web.client.RestTemplate;
 
 import com.example.bean.RequestCustomer;
 import com.example.bean.ResponseCustomer;
+import com.example.dao.CustomerFriends;
+import com.example.dao.Friends;
 import com.example.service.CustomerService;
-import com.netflix.discovery.DiscoveryClient;
 
 @RestController
 @RequestMapping("/customer")
@@ -32,6 +28,9 @@ public class CustomerController {
 	
 	@Autowired
 	private CustomerService customerService;
+	@Autowired
+	private org.springframework.cloud.client.discovery.DiscoveryClient discoveryClient;
+	
 	
 	@PostMapping("/addcustomer")
 	public ResponseEntity<ResponseCustomer> addCustomer(@RequestBody RequestCustomer requestCustomer) {
@@ -40,16 +39,25 @@ public class CustomerController {
 
 	}
 	@GetMapping("/customer/{custId}")  
-	public ResponseEntity<ResponseCustomer> getCustomerById(@PathVariable("custId") long custId)
+	public CustomerFriends getCustomerById(@PathVariable("custId") long custId)
 	{
 
-		try {
-			ResponseCustomer responseCustomer = customerService.getCustomerById(custId);
-			return new ResponseEntity<ResponseCustomer>(responseCustomer, HttpStatus.OK);
-		} catch (Exception e) {
-			e.printStackTrace();
-			return new ResponseEntity<ResponseCustomer>(null, new HttpHeaders(), HttpStatus.FORBIDDEN);
-		}
+		List<ServiceInstance> instance=discoveryClient.getInstances("jio-friends");
+		ServiceInstance serviceInstance=instance.get(0);
+		String baseUrl=serviceInstance.getUri().toString()+"/friend/friends/"+custId;
+		RestTemplate template=new RestTemplate();
+		ResponseEntity<Friends[]> response=template.getForEntity(baseUrl, Friends[].class);
+		Friends[] friendslist=response.getBody();
+		
+		ResponseCustomer responseCustomer = customerService.getCustomerById(custId);
+		CustomerFriends customerfriends=new CustomerFriends();
+		customerfriends.setCustId(responseCustomer.getCustId());
+		customerfriends.setCustName(responseCustomer.getCustName());
+		customerfriends.setCustAddress(responseCustomer.getCustAddress());
+		customerfriends.setCustNum(responseCustomer.getCustNum());
+		customerfriends.setFriendslist(friendslist);
+		return customerfriends;
+		
 
 	}
 	@GetMapping("/customers")  
@@ -60,15 +68,8 @@ public class CustomerController {
 	@PutMapping("/update/{custId}")
 	public ResponseEntity<ResponseCustomer> updateCustomer(@PathVariable("custId") long custId,@RequestBody RequestCustomer requestCustomer) 
 	{
-		try {
 		ResponseCustomer responseCustomer = customerService.updateCustomer(custId,requestCustomer);
 		return new ResponseEntity<ResponseCustomer>(responseCustomer, HttpStatus.OK);
-		}
-		 catch (Exception e) {
-				e.printStackTrace();
-				return new ResponseEntity<ResponseCustomer>(null, new HttpHeaders(), HttpStatus.FORBIDDEN);
-
-	}
 		
 	}
 }

@@ -16,9 +16,27 @@ public class PlanService {
 	@Autowired
 	private PlanRepository customerRepository;
 
+	public ResponsePlan addPlan(RequestPlan requestCustomer) {
+		// TODO Auto-generated method stub
+		Plan plan=new Plan();
+		plan.setPlanType(requestCustomer.getPlanType());
+		plan.setAmount(requestCustomer.getAmount());
+		plan.setValidity(requestCustomer.getValidity());
+		
+		Plan newcustomeradd=customerRepository.save(plan);
+		ResponsePlan newCustomer=new ResponsePlan();
+		newCustomer.setPlanId(newcustomeradd.getPlanId());
+		newCustomer.setPlanType(newcustomeradd.getPlanType());
+		newCustomer.setAmount(newcustomeradd.getAmount());
+		newCustomer.setValidity(newcustomeradd.getValidity());
+		
+		return newCustomer;
+	
+	}
 	
      public ResponsePlan getPlanById(long custId) {
 		// TODO Auto-generated method stub
+    	//List<Plan> plansList=new ArrayList<Plan>();
 		Plan customer=customerRepository.findById(custId).get();
 		ResponsePlan newCustomer=new ResponsePlan();
 		newCustomer.setPlanId(customer.getPlanId());
@@ -43,6 +61,26 @@ public class PlanService {
 		});
 		return newcustomers;
 	}
+
+	public List<ResponsePlan> getPlanByType(String custId) {
+		// TODO Auto-generated method stub
+    	ArrayList<ResponsePlan> rescalldatalist=new ArrayList<ResponsePlan>();
+    	List<Plan> calldatalist=customerRepository.getPlanByType(custId);
+		
+    	calldatalist.forEach((val)->{
+    		ResponsePlan newCustomer=new ResponsePlan();
+    		newCustomer.setPlanId(val.getPlanId());
+    		newCustomer.setPlanType(val.getPlanType());
+    		newCustomer.setAmount(val.getAmount());
+    		newCustomer.setValidity(val.getValidity());
+    		
+    		rescalldatalist.add(newCustomer);
+    	});
+		
+		return rescalldatalist;
+	}
+
+	
 
 
 }

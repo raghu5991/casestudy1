@@ -1,6 +1,5 @@
 package com.example.dao;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import javax.persistence.Entity;
@@ -14,7 +13,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
-@Entity
+@Entity(name = "Plan")
 @Table
 @Setter
 @Getter
